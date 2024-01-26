@@ -4,12 +4,14 @@ import { Time, TimeConstructor } from "./Time";
 
 export type Expiration = TimeConstructor | Time;
 
-export class CacheElement<TElement = any> {
+export class CacheElement<ElementType = any> {
 
-    public value: TElement;
-    public expireTimestamp: number = -1;
+    public static DEFAULT_TIMESTAMP = -1;
 
-    constructor(value: TElement, expireIn?: Expiration) {
+    public value: ElementType;
+    public expireTimestamp: number = CacheElement.DEFAULT_TIMESTAMP;
+
+    constructor(value: ElementType, expireIn?: Expiration) {
         this.value = value;
         if (!expireIn) return;
         if (expireIn instanceof Time) {

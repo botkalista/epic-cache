@@ -1,88 +1,35 @@
-import { CacheElement } from "../models/CacheElement";
-import { defaultGenericCacheOptions, GenericCacheOptions } from "../options/GenericCacheOptions";
 
-export type CacheEvent = 'get' | 'expire';
+import { Time } from "../models/Time";
+import { Cache } from "./Cache";
 
-type CacheEventHandler = { type: CacheEvent, callback: (...args: any) => any }
 
-type CallbackTypeMap<CacheValue extends any> = {
-    'get': (key: string) => any;
-    'expire': (key: string, value: CacheValue | undefined, expiredAt: number) => any;
+export type SizeExceededStrategy = 'throw-error' | 'no-cache'
+
+export type GenericCacheOptions = {
+    maxSize?: number,
+    sizeExceededStrategy?: SizeExceededStrategy,
+    clearExpiredOnSizeExceeded?: boolean,
+    defaultExpireTime?: Time,
+    expireOnInterval?: boolean,
+    expireCheckInterval?: Time
 }
 
-export class GenericCache<CacheValue = any> {
-    private handlers: CacheEventHandler[] = [];
-    private cache = new Map<string, CacheElement<CacheValue>>();
-    protected options: Required<GenericCacheOptions>;
+export const defaultGenericCacheOptions: Required<GenericCacheOptions> = {
+    maxSize: 1000,
+    sizeExceededStrategy: 'no-cache',
+    clearExpiredOnSizeExceeded: true,
+    defaultExpireTime: Time.from('15m'),
+    expireOnInterval: true,
+    expireCheckInterval: Time.from('10m')
+}
 
+export class GenericCache<CacheType = any> extends Cache<CacheType, GenericCacheOptions> {
     constructor(options?: GenericCacheOptions) {
-        this.options = { ...defaultGenericCacheOptions, ...options }
+        super({ ...defaultGenericCacheOptions, ...options });
+
+        super
+            .processBeforeGet((key, element) => element)
+            .processBeforeSet((key, element) => element)
+
     }
-
-    _rawCache() { return this.cache; }
-
-    size() { return this.cache.size; }
-
-    set(key: string, element: CacheElement<CacheValue>) {
-        this.add(key, element);
-    }
-
-    add(key: string, element: CacheElement<CacheValue>) {
-
-        if (element.expireTimestamp == -1) element.expireTimestamp = Date.now() + this.options.defaultExpireTime.value;
-
-        if (this.cache.size < this.options.maxSize) {
-            this.cache.set(key, element);
-            return this;
-        }
-
-        // maxSize reached
-
-        const hasElement = this.cache.has(key);
-        if (hasElement) {
-            this.cache.set(key, element);
-            return this;
-        }
-
-        if (this.options.clearExpiredOnSizeExceeded) this.clearExpired();
-
-        if (this.cache.size < this.options.maxSize) {
-            this.cache.set(key, element);
-            return this;
-        }
-
-        if (this.options.sizeExceededStrategy === 'no-cache') return this;
-        if (this.options.sizeExceededStrategy === 'throw-error') throw Error('Cache size exceeded');
-    }
-
-    get(key: string) {
-        this.emit('get', key);
-        const element = this.cache.get(key);
-        if (!element) return;
-        if (!element.isExpired()) return element.value;
-        this.emit('expire', key, element.value, element.expireTimestamp);
-        this.cache.delete(key);
-        return;
-    }
-
-    private clearExpired() {
-        const toDelete: string[] = []
-        for (const key of this.cache.keys()) {
-            if (this.cache.get(key).isExpired()) toDelete.push(key);
-        }
-        toDelete.forEach(e => this.cache.delete(e));
-    }
-
-    protected emit<EventName extends CacheEvent>(event: EventName, ...data: Parameters<CallbackTypeMap<CacheValue>[EventName]>) {
-        this.handlers.filter(handler => handler.type == event).forEach(handler => {
-            handler.callback(...data);
-        });
-        return this;
-    }
-
-    on<EventName extends CacheEvent>(event: EventName, callback: CallbackTypeMap<CacheValue>[EventName]) {
-        this.handlers.push({ type: event, callback });
-        return this;
-    }
-
 }
