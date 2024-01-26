@@ -1,8 +1,10 @@
-import { CacheElement } from "./models/CacheElement";
+import * as cacheElement from "./models/CacheElement";
+import * as time from "./models/Time";
+import * as genericCache from "./options/GenericCacheOptions";
 
 
-console.log(new CacheElement('test'));
-console.log(new CacheElement('test', 123));
-console.log(new CacheElement('test', new Date(2024, 1, 25, 20, 30)));
-console.log(new CacheElement('test', '2h'));
-
+export const CacheElement = cacheElement.CacheElement;
+export const Time = time.Time;
+export type TimeString = time.TimeString;
+export type GenricCache = genericCache.GenericCacheOptions;
+export type SizeExceededStrategy = genericCache.SizeExceededStrategy;
