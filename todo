@@ -1,0 +1,5 @@
+
+- Make every single method async
+- Add more tests
+- Add interval expire
+- Write good readme.md
