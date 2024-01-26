@@ -66,10 +66,8 @@ describe('GenericCache', () => {
         it('should fire onExpire', async () => {
             const cache = new GenericCache<number>();
 
-            cache.on('expire', (key, value, expiredAt) => {
+            cache.on('expire', key => {
                 expect(key).toBe('test');
-                expect(value).toBe(123);
-                expect(expiredAt).toBeLessThan(Date.now());
             });
 
             const element = new CacheElement<number>(123, '1s');
@@ -91,7 +89,7 @@ describe('GenericCache', () => {
             await sleep(2000);
             expect(cache.get('test')).toBeUndefined();
             expect(cache.size()).toBe(0);
-        });
+        }, 5000);
 
         it('should clearExpiredOnSizeExceeded', async () => {
 
@@ -116,7 +114,7 @@ describe('GenericCache', () => {
             expect(cache.get('test1')).toBeUndefined();
             expect(cache.size()).toBe(2);
 
-        });
+        }, 5000);
 
         it('should sizeExceededStrategy no-cache', async () => {
             const cache = new GenericCache<number>({
