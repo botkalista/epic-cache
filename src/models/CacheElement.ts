@@ -22,6 +22,18 @@ export class CacheElement<ElementType = any> {
         }
     }
 
+    withValue<NewValueType>(newValue: NewValueType) {
+        const instance = new CacheElement<NewValueType>(newValue);
+        instance.expireTimestamp = this.expireTimestamp;
+        return instance;
+    }
+
+    copy() {
+        const instance = new CacheElement<ElementType>(this.value);
+        instance.expireTimestamp = this.expireTimestamp;
+        return instance;
+    }
+
     static from<TElement = any>(value: TElement, expireIn?: Expiration) {
         const instance = new CacheElement(value, expireIn);
         return instance;
