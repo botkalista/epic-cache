@@ -103,7 +103,7 @@ export abstract class Cache<
     get(key: string) {
         const element = this.cache.get(key);
         if (!element) return;
-        if (!element.isExpired()) return this.getElement(key);
+        if (!element.isExpired()) return this.getElement(key).value;
         this.emit('expire', key);
         this.removeElement(key, false);
         return;
