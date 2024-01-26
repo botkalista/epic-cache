@@ -17,7 +17,7 @@ export abstract class Cache<
 > extends BetterEmitter<EventsMap<CacheType>> {
 
     protected options: Required<CacheOptions>;
-    private cache = new Map<string, CacheElement<CacheType>>();
+    protected cache = new Map<string, CacheElement<CacheType>>();
 
     protected setTransform?: (key: string, element: CacheElement<SetType>) => CacheElement<CacheType>;
     protected getTransform?: (key: string, element: CacheElement<CacheType>) => CacheElement<GetType>;
@@ -30,13 +30,16 @@ export abstract class Cache<
     _rawCache() { return this.cache; }
     size() { return this.cache.size; }
 
-    option(optionName: keyof CacheOptions) { return this.options[optionName]; }
+    option<Key extends keyof CacheOptions>(optionName: Key): CacheOptions[Key] {
+        return this.options[optionName];
+    }
 
     private getElement(key: string) {
         if (!this.getTransform) throw Error('processBeforeGet not called');
         const element = this.cache.get(key);
+        this.emit('get', key);
         const result = this.getTransform(key, element);
-        return result.value;
+        return result;
     }
     private setElement(key: string, element: CacheElement<SetType>) {
         if (!this.setTransform) throw Error('processBeforeSet not called');
@@ -46,8 +49,8 @@ export abstract class Cache<
         return this;
     }
     private removeElement(key: string, expired: boolean) {
-        this.cache.delete(key);
         this.emit(expired ? 'expire' : 'delete', key);
+        this.cache.delete(key);
         return this;
     }
 
@@ -104,5 +107,9 @@ export abstract class Cache<
         this.emit('expire', key);
         this.removeElement(key, false);
         return;
+    }
+    del(key: string) {
+        this.removeElement(key, false);
+        return this;
     }
 }
