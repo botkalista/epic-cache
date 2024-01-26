@@ -21,6 +21,7 @@ export class GenericCache<CacheValue = any> {
 
     _rawCache() { return this.cache; }
 
+    size() { return this.cache.size; }
 
     set(key: string, element: CacheElement<CacheValue>) {
         this.add(key, element);
@@ -28,7 +29,7 @@ export class GenericCache<CacheValue = any> {
 
     add(key: string, element: CacheElement<CacheValue>) {
 
-        if (element.expireTimestamp == -1) element.expireTimestamp = this.options.defaultExpireTime.value;
+        if (element.expireTimestamp == -1) element.expireTimestamp = Date.now() + this.options.defaultExpireTime.value;
 
         if (this.cache.size < this.options.maxSize) {
             this.cache.set(key, element);
@@ -65,9 +66,8 @@ export class GenericCache<CacheValue = any> {
     }
 
     private clearExpired() {
-        console.log('clearExpired')
         const toDelete: string[] = []
-        for (const key in this.cache) {
+        for (const key of this.cache.keys()) {
             if (this.cache.get(key).isExpired()) toDelete.push(key);
         }
         toDelete.forEach(e => this.cache.delete(e));

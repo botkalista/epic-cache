@@ -1,26 +1,28 @@
-import { createTimestamp, parseTimeString } from "../utils/TimeStringParser";
-import { Time } from "./Time";
+import { Time, TimeConstructor } from "./Time";
 
 
 
+export type Expiration = TimeConstructor | Time;
 
-export class CacheElement<T = any> {
+export class CacheElement<TElement = any> {
 
-    public value: T;
+    public value: TElement;
     public expireTimestamp: number = -1;
 
-    constructor(value: T, expireAtTimestamp?: number)
-    constructor(value: T, expireAtDate?: Date)
-    constructor(value: T, expireIn?: string)
-    constructor(value: T, expireTime?: Time)
-    constructor(value: T, expireAt?: any) {
+    constructor(value: TElement, expireIn?: Expiration) {
         this.value = value;
-        if (!expireAt) return;
-        if (expireAt instanceof Time) {
-            this.expireTimestamp = expireAt.value;
+        if (!expireIn) return;
+        if (expireIn instanceof Time) {
+            this.expireTimestamp = Date.now() + expireIn.value;
         } else {
-            this.expireTimestamp = createTimestamp(expireAt);
+            const time = Time.from(expireIn);
+            this.expireTimestamp = Date.now() + time.value;
         }
+    }
+
+    static from<TElement = any>(value: TElement, expireIn?: Expiration) {
+        const instance = new CacheElement(value, expireIn);
+        return instance;
     }
 
     public isExpired() {

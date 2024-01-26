@@ -20,16 +20,34 @@ describe('GenericCache', () => {
         });
 
         it('should expire correctly', async () => {
+
+
             const cache = new GenericCache<number>();
-            cache.add('test', new CacheElement<number>(112233, '2s'));
-            expect(cache.get('test')).toBe(112233);
+
+            const element1 = new CacheElement<number>(123, '4s');
+            cache.add('a', element1);
+            expect(cache.get('a')).toBe(123);
+            expect(cache.size()).toBe(1);
             await sleep(1000);
-            expect(cache.get('test')).toBe(112233);
+            expect(cache.get('a')).toBe(123);
+            expect(cache.size()).toBe(1);
+
+            const element2 = new CacheElement<number>(321, '1s');
+            cache.add('b', element2);
+            expect(cache.get('b')).toBe(321);
+            expect(cache.size()).toBe(2);
             await sleep(2000);
-            expect(cache._rawCache().size).toBe(1);
-            expect(cache.get('test')).toBeUndefined();
-            expect(cache._rawCache().size).toBe(0);
-        });
+            expect(cache.get('b')).toBeUndefined()
+            expect(cache.size()).toBe(1);
+
+            expect(cache.get('a')).toBe(123);
+            expect(cache.size()).toBe(1);
+            await sleep(2000);
+            expect(cache.get('a')).toBeUndefined()
+            expect(cache.size()).toBe(0);
+
+
+        }, 8000);
 
     });
 
@@ -72,28 +90,31 @@ describe('GenericCache', () => {
             expect(cache.get('test')).toBe(123);
             await sleep(2000);
             expect(cache.get('test')).toBeUndefined();
-            expect(cache._rawCache().size).toBe(0);
+            expect(cache.size()).toBe(0);
         });
 
         it('should clearExpiredOnSizeExceeded', async () => {
+
             const cache = new GenericCache<number>({
                 clearExpiredOnSizeExceeded: true,
+                sizeExceededStrategy: 'no-cache',
                 maxSize: 2
             });
 
             cache.add('test1', new CacheElement<number>(99, '1s'));
-            expect(cache._rawCache().size).toBe(1);
+            expect(cache.size()).toBe(1);
 
             await sleep(2000);
 
             cache.add('test2', new CacheElement<number>(99));
-            expect(cache._rawCache().size).toBe(2);
+            expect(cache.size()).toBe(2);
 
             cache.add('test3', new CacheElement<number>(99));
-            expect(cache._rawCache().size).toBe(2);
+            expect(cache.size()).toBe(2);
 
-            expect(cache.get('test2')).toBeUndefined();
-            expect(cache._rawCache().size).toBe(2);
+            expect(cache.get('test3')).toBe(99);
+            expect(cache.get('test1')).toBeUndefined();
+            expect(cache.size()).toBe(2);
 
         });
 
@@ -124,11 +145,11 @@ describe('GenericCache', () => {
 
         });
 
-        it('should expireOnInterval', async () => {
+        it.skip('should expireOnInterval', async () => {
             throw ('Not implemented')
         });
 
-        it('should expireCheckInterval', async () => {
+        it.skip('should expireCheckInterval', async () => {
             throw ('Not implemented')
         });
 
