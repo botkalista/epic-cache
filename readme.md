@@ -12,7 +12,6 @@ npm i epic-cache
 
 The base **abstract** class extended by the other cache classes.
 > **Only used to create other types of cache.**
-
 ## GenericCache
 
 The main cache, it holds a map of `<String, CacheType = any>`
@@ -44,8 +43,7 @@ clear all the expired keys before trying to an element to the cache when it's fu
 default expire time assigned to elements add to cache without their own expireTime
 
 	- The type of `defaultExpireTime` is `Time` | `TimeString` | `number`
-	<br>
-	> [*Read more about the time classes*](#time-classes)
+> [*Read more about the time classes*](#time-classes)
     
 - `expireOnInterval`: *(default: `true`)*
 check and remove the expired keys every interval (the cache will always remove the expired keys when you try to get them regardless of this value)
@@ -54,8 +52,7 @@ check and remove the expired keys every interval (the cache will always remove t
 the time interval to check and remote expired keys
 
 	- The type of `expireCheckInterval` is `Time` | `TimeString` | `number`
-	<br>
-	> [*Read more about the time classes*](#time-classes)
+> [*Read more about the time classes*](#time-classes)
 
 ### Methods
 
