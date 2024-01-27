@@ -1,12 +1,3 @@
-![Logo](./logo/logo.png)
-
-[![Node.js CI](https://github.com/node-cache/node-cache/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/node-cache/node-cache/actions?query=workflow%3A%22Node.js+CI%22+branch%3A%22master%22)
-![Dependency status](https://img.shields.io/david/node-cache/node-cache)
-[![NPM package version](https://img.shields.io/npm/v/node-cache?label=npm%20package)](https://www.npmjs.com/package/node-cache)
-[![NPM monthly downloads](https://img.shields.io/npm/dm/node-cache)](https://www.npmjs.com/package/node-cache)
-[![GitHub issues](https://img.shields.io/github/issues/node-cache/node-cache)](https://github.com/node-cache/node-cache/issues)
-[![Coveralls Coverage](https://img.shields.io/coveralls/node-cache/node-cache.svg)](https://coveralls.io/github/node-cache/node-cache)
-
 # Simple nodejs caching module
 
 # Install
@@ -83,10 +74,38 @@ cache.set('TaylorAge', CacheElement.from(22, '10s'));
 // Note: you can also use the add function - The behavior is the exact same
 cache.add('TaylorAge', CacheElement.from(22, '10s'))
 ```
-> 
+> [*Read more about the **CacheElement** class*](#time-classes)
+
+#### Get an element
+
+```ts
+import { GenericCache, CacheElement } from 'epic-cache';
+const cache = new GenericCache<number>();
+
+cache.set('TaylorAge', CacheElement.from(22));
+
+// Get the element from the cache
+const taylorAge = cache.get('TaylorAge'); // 22
+```
+
+#### Delete an element
+
+```ts
+// TODO: Create the code
+```
+
+### Events
+
+```ts
+// TODO: Create the code and the docs
+```
 
 
+## CacheElement
 
+```ts
+// TODO: Create the code and the docs
+```
 
 ## Time classes
 
@@ -125,31 +144,3 @@ const fiveSecond = new Time('5s');
 const oneMinute = Time.from(1000 * 60);
 const oneHour = Time.from('1h');
 ```
-
-
-
-[![NPM](https://nodei.co/npm-dl/node-cache.png?months=6)](https://nodei.co/npm/node-cache/)
-
-
-# The MIT License (MIT)
-
-Copyright © 2019 Mathias Peter and the node-cache maintainers, https://github.com/node-cache/node-cache
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
