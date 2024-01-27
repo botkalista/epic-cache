@@ -2,13 +2,15 @@
   "name": "epic-cache",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "directories": {
     "test": "tests"
   },
   "scripts": {
     "test": "jest",
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts",
+    "compile": "tsc"
   },
   "keywords": [],
   "author": "Emily",
