@@ -1,7 +1,6 @@
 import * as cacheElement from "./models/CacheElement";
 import * as time from "./models/Time";
-import * as genericCache from "./options/GenericCacheOptions";
-
+import * as genericCache from "./caches/GenericCache";
 
 export const CacheElement = cacheElement.CacheElement;
 export const Time = time.Time;
