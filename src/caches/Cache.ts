@@ -30,7 +30,7 @@ export abstract class Cache<
     _rawCache() { return this.cache; }
     size() { return this.cache.size; }
 
-    option<Key extends keyof CacheOptions>(optionName: Key): CacheOptions[Key] {
+    protected option<Key extends keyof CacheOptions>(optionName: Key): CacheOptions[Key] {
         return this.options[optionName];
     }
 
