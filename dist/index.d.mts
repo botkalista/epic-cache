@@ -33,7 +33,7 @@ type GenericCacheOptions = {
 declare const CacheElement: typeof CacheElement$1;
 declare const Time: typeof Time$1;
 type TimeString = TimeString$1;
-type GenricCache = GenericCacheOptions;
+type GenericCache = GenericCacheOptions;
 type SizeExceededStrategy = SizeExceededStrategy$1;
 
-export { CacheElement, type GenricCache, type SizeExceededStrategy, Time, type TimeString };
+export { CacheElement, type GenericCache, type SizeExceededStrategy, Time, type TimeString };
