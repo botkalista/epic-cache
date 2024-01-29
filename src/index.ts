@@ -5,5 +5,5 @@ import * as genericCache from "./caches/GenericCache";
 export const CacheElement = cacheElement.CacheElement;
 export const Time = time.Time;
 export type TimeString = time.TimeString;
-export type GenricCache = genericCache.GenericCacheOptions;
+export type GenericCache = genericCache.GenericCacheOptions;
 export type SizeExceededStrategy = genericCache.SizeExceededStrategy;
