@@ -88,7 +88,13 @@ const taylorAge = cache.get('TaylorAge'); // 22
 #### Delete an element
 
 ```ts
-// TODO: Create the code
+import { GenericCache, CacheElement } from 'epic-cache';
+const cache = new GenericCache<number>();
+
+cache.set('Mike', CacheElement.from(123));
+
+// Delete the element from the cache
+cache.del('Mike');
 ```
 
 ### Events
