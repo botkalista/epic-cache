@@ -1,6 +1,6 @@
 {
   "name": "epic-cache",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -11,7 +11,8 @@
   "scripts": {
     "test": "jest",
     "start": "ts-node src/index.ts",
-    "build": "tsup"
+    "build": "tsup",
+    "prepublishOnly": "tsup"
   },
   "keywords": [],
   "author": "Emily",
