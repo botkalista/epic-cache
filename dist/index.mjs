@@ -63,11 +63,132 @@ var CacheElement = class _CacheElement {
   }
 };
 
-// src/index.ts
-var CacheElement2 = CacheElement;
-var Time2 = Time;
+// src/components/BetterEmitter.ts
+var BetterEmitter = class {
+  handlers = [];
+  emit(event, ...data) {
+    this.handlers.filter((handler) => handler.type == event).forEach((handler) => {
+      handler.callback(...data);
+    });
+    return this;
+  }
+  on(event, callback) {
+    this.handlers.push({ type: event, callback });
+    return this;
+  }
+};
+
+// src/caches/Cache.ts
+var Cache = class extends BetterEmitter {
+  options;
+  cache = /* @__PURE__ */ new Map();
+  setTransform;
+  getTransform;
+  constructor(defaultOptions) {
+    super();
+    this.options = defaultOptions;
+  }
+  _rawCache() {
+    return this.cache;
+  }
+  size() {
+    return this.cache.size;
+  }
+  option(optionName) {
+    return this.options[optionName];
+  }
+  getElement(key) {
+    if (!this.getTransform)
+      throw Error("processBeforeGet not called");
+    const element = this.cache.get(key);
+    this.emit("get", key);
+    const result = this.getTransform(key, element);
+    return result;
+  }
+  setElement(key, element) {
+    if (!this.setTransform)
+      throw Error("processBeforeSet not called");
+    const processedElement = this.setTransform(key, element);
+    this.cache.set(key, processedElement);
+    this.emit("add", key, processedElement);
+    return this;
+  }
+  removeElement(key, expired) {
+    this.emit(expired ? "expire" : "delete", key);
+    this.cache.delete(key);
+    return this;
+  }
+  clearExpired() {
+    const toDelete = [];
+    for (const key of this.cache.keys()) {
+      if (this.cache.get(key).isExpired())
+        toDelete.push(key);
+    }
+    toDelete.forEach((e) => this.removeElement(e, true));
+  }
+  processBeforeSet(callback) {
+    this.setTransform = callback;
+    return this;
+  }
+  processBeforeGet(callback) {
+    this.getTransform = callback;
+    return this;
+  }
+  set(key, element) {
+    return this.add(key, element);
+  }
+  add(key, element) {
+    if (element.expireTimestamp == CacheElement.DEFAULT_TIMESTAMP)
+      element.expireTimestamp = Date.now() + this.options.defaultExpireTime.value;
+    if (this.cache.size < this.options.maxSize)
+      return this.setElement(key, element);
+    const hasElement = this.cache.has(key);
+    if (hasElement)
+      return this.setElement(key, element);
+    if (this.options.clearExpiredOnSizeExceeded)
+      this.clearExpired();
+    if (this.cache.size < this.options.maxSize)
+      return this.setElement(key, element);
+    if (this.options.sizeExceededStrategy === "no-cache")
+      return this;
+    if (this.options.sizeExceededStrategy === "throw-error")
+      throw Error("Cache size exceeded");
+  }
+  get(key) {
+    const element = this.cache.get(key);
+    if (!element)
+      return;
+    if (!element.isExpired())
+      return this.getElement(key).value;
+    this.emit("expire", key);
+    this.removeElement(key, false);
+    return;
+  }
+  del(key) {
+    this.removeElement(key, false);
+    return this;
+  }
+};
+
+// src/caches/GenericCache.ts
+var defaultGenericCacheOptions = {
+  maxSize: 1e3,
+  sizeExceededStrategy: "no-cache",
+  clearExpiredOnSizeExceeded: true,
+  defaultExpireTime: Time.from("15m"),
+  expireOnInterval: true,
+  expireCheckInterval: Time.from("10m")
+};
+var GenericCache = class extends Cache {
+  constructor(options) {
+    super({ ...defaultGenericCacheOptions, ...options });
+    super.processBeforeGet((key, element) => element).processBeforeSet((key, element) => element);
+  }
+};
 export {
-  CacheElement2 as CacheElement,
-  Time2 as Time
+  CacheElement,
+  GenericCache,
+  Time,
+  defaultGenericCacheOptions
 };
 //# sourceMappingURL=index.mjs.map
