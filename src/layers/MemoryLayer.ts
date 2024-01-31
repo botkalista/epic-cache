@@ -6,7 +6,7 @@ import { Layer, RequiredLayerOptions } from "./Layer";
 
 export type MemoryLayerOptions = RequiredLayerOptions;
 
-const defaultMemoryLayerOptions: Required<MemoryLayerOptions> = {
+export const defaultMemoryLayerOptions: Required<MemoryLayerOptions> = {
     expireTime: Time.from('5m'),
     clearExpiredOnSizeExceeded: true,
     maxSize: 100,
@@ -15,11 +15,9 @@ const defaultMemoryLayerOptions: Required<MemoryLayerOptions> = {
 
 export class MemoryLayer<StoreType>
     extends Layer<StoreType, StoreType, MemoryLayerOptions>
-    implements ICacheLayer<StoreType> {
+    implements ICacheLayer<StoreType, StoreType> {
 
-
-
-    constructor(options: Partial<MemoryLayerOptions>) {
+    constructor(options?: Partial<MemoryLayerOptions>) {
         super({ ...defaultMemoryLayerOptions, ...options });
     }
 
