@@ -23,8 +23,8 @@ export class MemoryLayer<StoreType>
 
     private data = new Map<string, CacheElement<StoreType>>();
 
-    protected getSize(): number {
-        return this.data.size
+    public size(): number {
+        return this.data.size;
     }
 
     protected getExpired(): [string, CacheElement<StoreType>][] {

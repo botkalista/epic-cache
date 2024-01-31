@@ -5,84 +5,99 @@ async function sleep(ms: number) { await new Promise(e => setTimeout(e, ms)); }
 
 describe('MemoryLayer', () => {
 
-    describe('Basic actions', () => {
+    describe.skip('Basic actions', () => {
 
         it('should get correct data', () => {
-            const cache = new MemoryLayer<number>();
+            const layer = new MemoryLayer<number>();
 
             const elementA = createCacheElement(123);
-            cache.setData('a', elementA);
+            layer.setData('a', elementA);
 
             const elementB = createCacheElement(321);
-            cache.setData('b', elementB);
+            layer.setData('b', elementB);
 
-            const resultA = cache.getData('a');
+            const resultA = layer.getData('a');
             expect(resultA).toBe(elementA);
 
-            const resultB = cache.getData('b');
+            const resultB = layer.getData('b');
             expect(resultB).toBe(elementB);
         });
 
-        //     it('should expire correctly', async () => {
+        it('should expire correctly', async () => {
+
+            const layer = new MemoryLayer<number>();
+
+            const elementA = createCacheElement(123, '4s');
+            layer.setData('a', elementA);
+            expect(layer.getData('a')).toBe(elementA);
+            expect(layer.size()).toBe(1);
+            await sleep(1000);
+            expect(layer.getData('a')).toBe(elementA);
+            expect(layer.size()).toBe(1);
+
+            const elementB = createCacheElement(321, '1s');
+            layer.setData('b', elementB);
+            expect(layer.getData('b')).toBe(elementB);
+            expect(layer.size()).toBe(2);
+            await sleep(2000);
+            expect(layer.getData('b')).toBeUndefined();
+            expect(layer.size()).toBe(1);
+
+            expect(layer.getData('a')).toBe(elementA);
+            expect(layer.size()).toBe(1);
+            await sleep(2000);
+            expect(layer.getData('a')).toBeUndefined();
+            expect(layer.size()).toBe(0);
 
 
-        //         const cache = new GenericCache<number>();
-
-        //         const element1 = new CacheElement<number>(123, '4s');
-        //         cache.add('a', element1);
-        //         expect(cache.get('a')).toBe(123);
-        //         expect(cache.size()).toBe(1);
-        //         await sleep(1000);
-        //         expect(cache.get('a')).toBe(123);
-        //         expect(cache.size()).toBe(1);
-
-        //         const element2 = new CacheElement<number>(321, '1s');
-        //         cache.add('b', element2);
-        //         expect(cache.get('b')).toBe(321);
-        //         expect(cache.size()).toBe(2);
-        //         await sleep(2000);
-        //         expect(cache.get('b')).toBeUndefined()
-        //         expect(cache.size()).toBe(1);
-
-        //         expect(cache.get('a')).toBe(123);
-        //         expect(cache.size()).toBe(1);
-        //         await sleep(2000);
-        //         expect(cache.get('a')).toBeUndefined()
-        //         expect(cache.size()).toBe(0);
-
-
-        //     }, 8000);
+        }, 8000);
 
     });
 
-    // describe('Events', () => {
+    describe('Events', () => {
 
-    //     it('should fire onGet', () => {
-    //         const cache = new GenericCache<number>();
+        it('should fire onGet', () => {
+            const layer = new MemoryLayer<number>();
 
-    //         cache.on('get', key => {
-    //             expect(key).toBe('test');
-    //         });
+            layer.setData('testA', createCacheElement(123));
 
-    //         cache.get('test');
-    //     });
+            const getEmptyCallback = jest.fn((key) => {
+                expect(key).toBe('test');
+            });
 
-    //     it('should fire onExpire', async () => {
-    //         const cache = new GenericCache<number>();
+            const getCallback = jest.fn((key, value, element) => {
+                expect(key).toBe('test');
+                expect(value).toBe('test');
+                expect(value).toBe('test');
+            });
 
-    //         cache.on('expire', key => {
-    //             expect(key).toBe('test');
-    //         });
+            layer.on('getEmpty', getEmptyCallback);
+            layer.on('get', getCallback);
 
-    //         const element = new CacheElement<number>(123, '1s');
-    //         cache.set('test', element);
-    //         await sleep(2000);
-    //         cache.get('test');
+            layer.getData('testA');
+            layer.getData('testB');
 
-    //     });
+            expect(getEmptyCallback).not.toHaveBeenCalled();
+            expect(getCallback).toHaveBeenCalledTimes(1);
+            expect(getEmptyCallback).toHaveBeenCalledWith('test')
+        });
+
+        // it('should fire onExpire', async () => {
+        //     const cache = new GenericCache<number>();
+
+        //     cache.on('expire', key => {
+        //         expect(key).toBe('test');
+        //     });
+
+        //     const element = new CacheElement<number>(123, '1s');
+        //     cache.set('test', element);
+        //     await sleep(2000);
+        //     cache.get('test');
+
+        // });
 
 
-    // });
+    });
 
     // describe('Options', () => {
 

@@ -6,6 +6,7 @@ type Nullable<T> = T | undefined;
 
 type BaseEventsMap<SetType, GetType> = {
     get: (key: string, value: GetType, data: CacheElement<GetType>) => any;
+    getEmpty: (key: string) => any;
     set: (key: string, value: SetType, data: CacheElement<SetType>) => any;
     expire: (key: string, value: GetType, data: CacheElement<GetType>) => any;
     remove: (key: string, value: GetType, data: CacheElement<GetType>) => any;
@@ -37,6 +38,11 @@ export abstract class Layer<
 
     public getData(key: string) {
         const element = this.onGet(key);
+        if (!element) {
+            this.emit('getEmpty', key)
+            return;
+        }
+
         if (this.isExpired(element)) {
             this.emit('expire', key, element.value, element);
             this.onExpired(key, element);
@@ -57,7 +63,7 @@ export abstract class Layer<
         if (element.expireTimestamp == DEFAULT_EXPIRE)
             element.expireTimestamp = Date.now() + this.option('expireTime').value;
 
-        if (this.getSize() < this.option('maxSize')) {
+        if (this.size() < this.option('maxSize')) {
             this.onSet(key, element);
             this.emit('set', key, element.value, element);
             return this;
@@ -74,7 +80,7 @@ export abstract class Layer<
 
         if (this.option('clearExpiredOnSizeExceeded')) this.clearExpired();
 
-        if (this.getSize() < this.option('maxSize')) {
+        if (this.size() < this.option('maxSize')) {
             this.onSet(key, element);
             this.emit('set', key, element.value, element);
             return this;
@@ -97,7 +103,8 @@ export abstract class Layer<
     }
 
 
-    protected abstract getSize(): number;
+    public abstract size(): number;
+
     protected abstract getExpired(): [string, CacheElement<GetType>][];
     protected abstract onExpired(key: string, element: CacheElement<GetType>): this;
 
