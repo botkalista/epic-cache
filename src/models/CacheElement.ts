@@ -1,47 +1,20 @@
 import { Time, TimeConstructor } from "./Time";
 
-
+export type CacheElement<T> = {
+    expireTimestamp: number;
+    value: T;
+}
 
 export type Expiration = TimeConstructor | Time;
 
-export class CacheElement<ElementType = any> {
+export const DEFAULT_EXPIRE = -1;
 
-    public static DEFAULT_TIMESTAMP = -1;
-
-    public value: ElementType;
-    public expireTimestamp: number = CacheElement.DEFAULT_TIMESTAMP;
-
-    constructor(value: ElementType, expireIn?: Expiration) {
-        this.value = value;
-        if (!expireIn) return;
-        if (expireIn instanceof Time) {
-            this.expireTimestamp = Date.now() + expireIn.value;
-        } else {
-            const time = Time.from(expireIn);
-            this.expireTimestamp = Date.now() + time.value;
-        }
+export function createCacheElement<T>(value: T, expireIn?: Expiration): CacheElement<T> {
+    if (!expireIn) return { value, expireTimestamp: DEFAULT_EXPIRE };
+    if (expireIn instanceof Time) {
+        return { value, expireTimestamp: Date.now() + expireIn.value };
+    } else {
+        const time = Time.from(expireIn);
+        return { value, expireTimestamp: Date.now() + time.value };
     }
-
-    withValue<NewValueType>(newValue: NewValueType) {
-        const instance = new CacheElement<NewValueType>(newValue);
-        instance.expireTimestamp = this.expireTimestamp;
-        return instance;
-    }
-
-    copy() {
-        const instance = new CacheElement<ElementType>(this.value);
-        instance.expireTimestamp = this.expireTimestamp;
-        return instance;
-    }
-
-    static from<TElement = any>(value: TElement, expireIn?: Expiration) {
-        const instance = new CacheElement(value, expireIn);
-        return instance;
-    }
-
-    public isExpired() {
-        if (this.expireTimestamp <= 0) return false;
-        return this.expireTimestamp < Date.now();
-    }
-
 }
