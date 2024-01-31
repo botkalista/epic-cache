@@ -55,7 +55,7 @@ describe('MemoryLayer', () => {
 
     });
 
-    describe('Events', () => {
+    describe.only('Events', () => {
 
         it('should fire onGet', () => {
             const layer = new MemoryLayer<number>();
@@ -111,7 +111,10 @@ describe('MemoryLayer', () => {
                 expect(data).toBe(element);
             });
 
+            const removeCallback = jest.fn((key, value, element) => { });
+
             layer.on('expire', expireCallback);
+            layer.on('remove', removeCallback);
 
             layer.setData('test', element);
             await sleep(2000);
@@ -121,20 +124,58 @@ describe('MemoryLayer', () => {
 
             expect(expireCallback).toHaveBeenCalledTimes(1);
             expect(expireCallback).toHaveBeenCalledWith('test', 123, element);
+            expect(removeCallback).not.toHaveBeenCalled();
 
         }, 4000);
 
-        it('should fire onDelete', async () => {
-            throw Error('Not implemented');
+        it('should fire onRemove', async () => {
+            const layer = new MemoryLayer<number>();
+
+            const cacheElement = createCacheElement(123);
+            layer.setData('test', cacheElement);
+
+            const removeCallback = jest.fn((key, value, element) => {
+                expect(key).toBe('test');
+                expect(value).toBe(123);
+                expect(element).toBe(cacheElement);
+            });
+
+            const expireCallback = jest.fn(() => { });
+
+            layer.on('remove', removeCallback);
+            layer.on('expire', expireCallback);
+
+            layer.removeData('test');
+
+            expect(removeCallback).toHaveBeenCalledTimes(1);
+            expect(removeCallback).toHaveBeenCalledWith('test', 123, cacheElement);
+            expect(expireCallback).not.toHaveBeenCalled();
+
         });
 
         it('should fire onSet', async () => {
-            throw Error('Not implemented');
+            const layer = new MemoryLayer<number>();
+
+            const cacheElement = createCacheElement(123);
+
+            const setCallback = jest.fn((key, value, element) => {
+                expect(key).toBe('test');
+                expect(value).toBe(123);
+                expect(element).toBe(cacheElement);
+            });
+
+            layer.on('set', setCallback);
+
+            layer.setData('test', cacheElement);
+
+
+            expect(setCallback).toHaveBeenCalledTimes(1);
+            expect(setCallback).toHaveBeenCalledWith('test', 123, cacheElement);
         });
 
     });
 
-    describe.only('Options', () => {
+    describe('Options', () => {
 
         it('should expire on expireTime', async () => {
             const layer = new MemoryLayer<number>({ expireTime: Time.from('1s') });
