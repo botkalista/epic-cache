@@ -1,6 +1,6 @@
 
 import { Time } from "../models/Time";
-import { CacheElement, copyCacheElementWithValue } from "../models/CacheElement";
+import { CacheElement, copyCacheElementWithValue, createCacheElement } from "../models/CacheElement";
 import { ICacheLayerPersistent } from "../interfaces/ICacheLayer";
 import { Layer, RequiredLayerOptions } from "./Layer";
 
@@ -105,6 +105,12 @@ export class FileLayer<StoreType>
     }
 
     public load() {
-
+        const files = fs.readdirSync(this.option('cachePath'))
+        for (const file of files) {
+            const filePath = this.getFinalPath(file);
+            const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+            //TODO: reset timestamp on load? saving with delta?
+            this.data.set(file, content);
+        }
     }
 }
