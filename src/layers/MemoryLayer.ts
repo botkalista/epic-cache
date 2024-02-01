@@ -1,7 +1,7 @@
 
 import { Time } from "../models/Time";
 import { CacheElement } from "../models/CacheElement";
-import { ICacheLayer } from "../interfaces/ICacheLayer";
+import { ICacheLayerVolatile } from "../interfaces/ICacheLayer";
 import { Layer, RequiredLayerOptions } from "./Layer";
 
 export type MemoryLayerOptions = RequiredLayerOptions;
@@ -9,14 +9,15 @@ export type MemoryLayerOptions = RequiredLayerOptions;
 export const defaultMemoryLayerOptions: MemoryLayerOptions = {
     expireTime: Time.from('5m'),
     clearExpiredOnSizeExceeded: true,
-    maxSize: 100,
+    maxSize: 1000,
     sizeExceededStrategy: 'no-cache',
     expireOnInterval: false
 }
 
 export class MemoryLayer<StoreType>
     extends Layer<StoreType, StoreType, MemoryLayerOptions>
-    implements ICacheLayer<StoreType, StoreType> {
+    implements ICacheLayerVolatile<StoreType, StoreType> {
+    type: "volatile";
 
     constructor(options?: Partial<MemoryLayerOptions>) {
         super({ ...defaultMemoryLayerOptions, ...options });
@@ -44,6 +45,10 @@ export class MemoryLayer<StoreType>
     protected onSet(key: string, element: CacheElement<StoreType>): this {
         this.data.set(key, element);
         return this;
+    }
+
+    protected onHas(key: string): boolean {
+        return this.data.has(key);
     }
 
     protected onRemove(key: string): CacheElement<StoreType> {

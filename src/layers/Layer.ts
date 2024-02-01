@@ -61,6 +61,10 @@ export abstract class Layer<
         return element;
     }
 
+    public hasData(key: string) {
+        return this.hasData(key);
+    }
+
     public removeData(key: string) {
         const element = this.onRemove(key);
         if (element) this.emit('remove', key, element.value, element);
@@ -126,6 +130,7 @@ export abstract class Layer<
     protected abstract onExpired(key: string, element: CacheElement<GetType>): this;
 
     protected abstract onGet(key: string): Nullable<CacheElement<GetType>>;
+    protected abstract onHas(key: string): boolean;
     protected abstract onSet(key: string, element: CacheElement<SetType>): this;
     protected abstract onRemove(key: string): Nullable<CacheElement<GetType>>;
 
