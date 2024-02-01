@@ -18,7 +18,7 @@ export interface ICacheLayerPersistent<SetType, GetType> extends ICacheLayerBase
 }
 
 
-export type ICacheLayer<SetType, GetType> = ICacheLayerVolatile<SetType, GetType> | ICacheLayerPersistent<SetType, GetType>
+export type CacheLayer<SetType, GetType> = ICacheLayerVolatile<SetType, GetType> | ICacheLayerPersistent<SetType, GetType>
 
 // export interface ICacheLayer<SetType, GetType> {
 //     getData(key: string): CacheElement<GetType>;
