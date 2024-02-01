@@ -1,4 +1,4 @@
-import { LayerSizeExceededStrategy } from "../caches/Cache";
+import { LayerSizeExceededStrategy } from "./Cache";
 import { CacheLayer } from "../interfaces/ICacheLayer";
 
 

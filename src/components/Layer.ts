@@ -1,18 +1,19 @@
 import { Time } from "../models/Time";
-import { BetterEmitter } from "../components/BetterEmitter";
+import { BetterEmitter } from "./BetterEmitter";
 import { CacheElement, DEFAULT_EXPIRE } from "../models/CacheElement";
+import { Store } from "../interfaces/Store";
 
 type Nullable<T> = T | undefined;
 
-type BaseEventsMap<SetType, GetType> = {
-    get: (key: string, value: GetType, data: CacheElement<GetType>) => any;
+type BaseEventsMap<DataType> = {
+    get: (key: string) => any;
+    set: (key: string, value: DataType) => any;
+    remove: (key: string) => any;
     getEmpty: (key: string) => any;
-    set: (key: string, value: SetType, data: CacheElement<SetType>) => any;
-    expire: (key: string, value: GetType, data: CacheElement<GetType>) => any;
-    remove: (key: string, value: GetType, data: CacheElement<GetType>) => any;
+    expire: (key: string) => any;
 }
 
-export type RequiredLayerOptions = {
+export type LayerOptions = {
     expireTime: Time,
     maxSize: number,
     clearExpiredOnSizeExceeded: boolean,
@@ -21,15 +22,11 @@ export type RequiredLayerOptions = {
     expireCheckInterval?: Time
 }
 
-export abstract class Layer<
-    SetType,
-    GetType,
-    LayerOptions extends RequiredLayerOptions,
-> extends BetterEmitter<BaseEventsMap<SetType, GetType>> {
+export abstract class Layer<DataType> extends BetterEmitter<BaseEventsMap<SetType, GetType>> {
 
     private expireInterval: NodeJS.Timeout;
 
-    constructor(protected options: LayerOptions) {
+    constructor(protected store: Store<DataType>, protected options: LayerOptions) {
         super();
         Object.seal(this.options);
         if (options.expireOnInterval) {
@@ -41,29 +38,33 @@ export abstract class Layer<
         }
     }
 
-    protected isExpired(element: CacheElement<any>): boolean {
-        return element.expireTimestamp < Date.now()
-    }
 
-    public getData(key: string) {
-        const element = this.onGet(key);
-        if (!element) {
-            this.emit('getEmpty', key)
+    public get(key: string) {
+
+        const hasElement = this.store.has(key);
+        if (!hasElement) {
+            this.emit('getEmpty', key);
             return;
         }
 
-        if (this.isExpired(element)) {
-            this.emit('expire', key, element.value, element);
-            this.onExpired(key, element);
+        const expired = this.store.isExpired(key);
+        if (expired) {
+            this.emit('expire', key);
+            this.store.del(key);
             return;
         }
-        this.emit('get', key, element.value, element);
+
+        const element = this.store.get('key');
+        this.emit('get', key);
         return element;
+
     }
 
-    public hasData(key: string) {
-        return this.hasData(key);
+    public set(key: string, data: DataType) {
+        const cacheElement = CacheElement.from(data, this.options.expireTime);
     }
+
+    protected isElementExpired(element: CacheElement<any>): boolean { return element.expireTimestamp < Date.now() }
 
     public removeData(key: string) {
         const element = this.onRemove(key);

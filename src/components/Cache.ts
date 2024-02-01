@@ -1,4 +1,4 @@
-import { LayerManger } from "../components/LayerManager";
+import { LayerManger } from "./LayerManager";
 
 export type LayerSelectionStrategy = 'random' | 'ordered' | 'custom';
 export type LayerSizeExceededStrategy = 'use-next-layer' | 'custom';

@@ -2,7 +2,7 @@
 import { Time } from "../models/Time";
 import { CacheElement, copyCacheElementWithValue, createCacheElement } from "../models/CacheElement";
 import { ICacheLayerPersistent } from "../interfaces/ICacheLayer";
-import { Layer, RequiredLayerOptions } from "./Layer";
+import { Layer, RequiredLayerOptions } from "../components/Layer";
 
 import fs from 'fs';
 import path from 'path';
@@ -54,7 +54,7 @@ export class FileLayer<StoreType>
     }
 
     protected getExpired(): [string, CacheElement<StoreType>][] {
-        const expireds = Array.from(this.data.entries()).filter(e => this.isExpired(e[1]));
+        const expireds = Array.from(this.data.entries()).filter(e => this.isElementExpired(e[1]));
         if (this.option('silentEvents')) {
             return expireds.map(e => [e[0], undefined]);
         }

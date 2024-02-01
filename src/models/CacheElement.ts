@@ -1,29 +1,58 @@
 import { Time, TimeConstructor } from "./Time";
 
-export type CacheElement<T, M = any> = {
-    expireTimestamp: number;
-    value: T;
-    metadata?: M;
-}
-
 export type Expiration = TimeConstructor | Time;
 
-export const DEFAULT_EXPIRE = -1;
+export class CacheElement<DataType> {
+    public expireTimestamp: number;
+    public value: DataType;
 
+    constructor(value: DataType, expireIn?: Expiration) {
+        this.value = value;
+
+        if (!expireIn) {
+            this.expireTimestamp = 0;
+            return;
+        }
+
+        if (expireIn instanceof Time) {
+            this.expireTimestamp = Date.now() + expireIn.value;
+            return;
+        }
+
+        const time = Time.from(expireIn);
+        this.expireTimestamp = Date.now() + time.value;
+    };
+
+    static from<T>(value: T, expireIn?: Expiration) {
+        const instance = new CacheElement<T>(value, expireIn);
+        return instance;
+    }
+
+    isExpired() {
+        if (this.expireTimestamp == 0) return false;
+        return this.expireTimestamp < Date.now();
+    }
+
+}
+
+
+
+
+//TODO: REMOVE
 export function createCacheElement<T>(value: T, expireIn?: Expiration, metadata?: any): CacheElement<T> {
     if (!expireIn) return { value, expireTimestamp: DEFAULT_EXPIRE };
     if (expireIn instanceof Time) {
-        return { value, expireTimestamp: Date.now() + expireIn.value, metadata };
+        return { value, expireTimestamp: Date.now() + expireIn.value };
     } else {
         const time = Time.from(expireIn);
-        return { value, expireTimestamp: Date.now() + time.value, metadata };
+        return { value, expireTimestamp: Date.now() + time.value };
     }
 }
 
-export function copyCacheElementWithValue<OldValue, Metadata, NewValue>(baseElement: CacheElement<OldValue, Metadata>, newValue: NewValue): CacheElement<NewValue, Metadata> {
-    const newElement: CacheElement<NewValue, Metadata> = {
+//TODO: REMOVE
+export function copyCacheElementWithValue<OldValue, Metadata, NewValue>(baseElement: CacheElement<OldValue>, newValue: NewValue): CacheElement<NewValue> {
+    const newElement: CacheElement<NewValue> = {
         expireTimestamp: baseElement.expireTimestamp,
-        metadata: baseElement.metadata,
         value: newValue
     }
     return newElement;

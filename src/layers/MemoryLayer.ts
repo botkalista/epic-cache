@@ -2,7 +2,7 @@
 import { Time } from "../models/Time";
 import { CacheElement } from "../models/CacheElement";
 import { ICacheLayerVolatile } from "../interfaces/ICacheLayer";
-import { Layer, RequiredLayerOptions } from "./Layer";
+import { Layer, RequiredLayerOptions } from "../components/Layer";
 
 export type MemoryLayerOptions = RequiredLayerOptions;
 
@@ -30,7 +30,7 @@ export class MemoryLayer<StoreType>
     }
 
     protected getExpired(): [string, CacheElement<StoreType>][] {
-        return Array.from(this.data.entries()).filter(e => this.isExpired(e[1]));
+        return Array.from(this.data.entries()).filter(e => this.isElementExpired(e[1]));
     }
 
     protected onExpired(key: string, element: CacheElement<StoreType>): this {
