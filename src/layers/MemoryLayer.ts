@@ -6,11 +6,12 @@ import { Layer, RequiredLayerOptions } from "./Layer";
 
 export type MemoryLayerOptions = RequiredLayerOptions;
 
-export const defaultMemoryLayerOptions: Required<MemoryLayerOptions> = {
+export const defaultMemoryLayerOptions: MemoryLayerOptions = {
     expireTime: Time.from('5m'),
     clearExpiredOnSizeExceeded: true,
     maxSize: 100,
-    sizeExceededStrategy: 'no-cache'
+    sizeExceededStrategy: 'no-cache',
+    expireOnInterval: false
 }
 
 export class MemoryLayer<StoreType>

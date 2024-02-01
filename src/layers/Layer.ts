@@ -16,7 +16,9 @@ export type RequiredLayerOptions = {
     expireTime: Time,
     maxSize: number,
     clearExpiredOnSizeExceeded: boolean,
-    sizeExceededStrategy: 'no-cache' | 'throw-error'
+    sizeExceededStrategy: 'no-cache' | 'throw-error',
+    expireOnInterval: boolean,
+    expireCheckInterval?: Time
 }
 
 export abstract class Layer<
@@ -25,11 +27,18 @@ export abstract class Layer<
     LayerOptions extends RequiredLayerOptions,
 > extends BetterEmitter<BaseEventsMap<SetType, GetType>> {
 
-    protected options: LayerOptions;
+    private expireInterval: NodeJS.Timeout;
 
-    constructor(defaultOptions: LayerOptions) {
+    constructor(protected options: LayerOptions) {
         super();
-        this.options = defaultOptions;
+        Object.seal(this.options);
+        if (options.expireOnInterval) {
+            const ms = options.expireCheckInterval;
+            if (!ms) throw Error('"expireCheckInterval" is required when "expireOnInterval" is true')
+            this.expireInterval = setInterval(() => {
+                this.clearExpired();
+            }, ms.value);
+        }
     }
 
     protected isExpired(element: CacheElement<any>): boolean {
@@ -93,9 +102,17 @@ export abstract class Layer<
         return this;
     }
 
+    public dispose() {
+        if (this.expireInterval) clearInterval(this.expireInterval);
+        this.clearExpired();
+    }
+
     private clearExpired() {
         const expiredList = this.getExpired();
-        expiredList.forEach(expired => this.onExpired(expired[0], expired[1]));
+        expiredList.forEach(expired => {
+            this.emit('expire', expired[0], expired[1].value, expired[1]);
+            this.onExpired(expired[0], expired[1])
+        });
     }
 
     protected option<Key extends keyof LayerOptions>(optionName: Key): LayerOptions[Key] {

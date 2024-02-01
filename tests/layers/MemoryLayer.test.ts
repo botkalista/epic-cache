@@ -8,7 +8,7 @@ describe('MemoryLayer', () => {
 
     describe('Basic actions', () => {
 
-        it('should get correct data', () => {
+        it('should get data', () => {
             const layer = new MemoryLayer<number>();
 
             const elementA = createCacheElement(123);
@@ -24,7 +24,7 @@ describe('MemoryLayer', () => {
             expect(resultB).toBe(elementB);
         });
 
-        it('should expire correctly', async () => {
+        it('should expire', async () => {
 
             const layer = new MemoryLayer<number>();
 
@@ -53,9 +53,19 @@ describe('MemoryLayer', () => {
 
         }, 7000);
 
+        it('should remove data', () => {
+            const layer = new MemoryLayer<number>();
+            const element = createCacheElement(123);
+            layer.setData('a', element);
+            expect(layer.size()).toBe(1);
+            layer.removeData('a');
+            expect(layer.getData('a')).toBeUndefined();
+            expect(layer.size()).toBe(0);
+        });
+
     });
 
-    describe.only('Events', () => {
+    describe('Events', () => {
 
         it('should fire onGet', () => {
             const layer = new MemoryLayer<number>();
@@ -225,31 +235,59 @@ describe('MemoryLayer', () => {
             expect(layer.getData('test3')).toBeUndefined();
         });
 
-        // it('should sizeExceededStrategy throw-error', async () => {
-        //     const cache = new GenericCache<number>({
-        //         clearExpiredOnSizeExceeded: false,
-        //         sizeExceededStrategy: 'throw-error',
-        //         maxSize: 2
-        //     });
-        //     cache.add('test1', new CacheElement<number>(99));
-        //     cache.add('test2', new CacheElement<number>(99));
+        it('should sizeExceededStrategy throw-error', async () => {
+            const layer = new MemoryLayer<number>({
+                clearExpiredOnSizeExceeded: false,
+                sizeExceededStrategy: 'throw-error',
+                maxSize: 2
+            });
+            layer.setData('test1', createCacheElement(99));
+            layer.setData('test2', createCacheElement(99));
 
-        //     expect(() => {
-        //         cache.add('test3', new CacheElement<number>(99));
-        //     }).toThrow();
+            expect(() => {
+                layer.setData('test3', createCacheElement(99));
+            }).toThrow();
 
-        // });
+        });
 
-        //     it.skip('should expireOnInterval', async () => {
-        //         throw ('Not implemented')
-        //     });
+        it('should expire on interval', async () => {
 
-        //     it.skip('should expireCheckInterval', async () => {
-        //         throw ('Not implemented')
-        //     });
+            const layer = new MemoryLayer<number>({
+                expireTime: Time.from('1s'),
+                expireOnInterval: true,
+                expireCheckInterval: Time.from('2s')
+            });
+
+            const onExpire = jest.fn(() => { });
+            layer.on('expire', onExpire);
+
+            const cacheElement = createCacheElement(123);
+            layer.setData('test', cacheElement);
+            expect(layer.getData('test')).toBe(cacheElement);
+            expect(layer.size()).toBe(1);
+
+            await sleep(3000);
+
+            expect(layer.getData('test')).toBeUndefined();
+            expect(layer.size()).toBe(0);
+            expect(onExpire).toHaveBeenCalledTimes(1);
+            expect(onExpire).toHaveBeenCalledWith('test', cacheElement.value, cacheElement);
+
+            layer.dispose();
+
+        }, 5000);
+
+        it('should error expireOnInterval without expireCheckInterval', async () => {
+
+            function createLayer() {
+                new MemoryLayer<number>({ expireOnInterval: true, });
+            }
+
+            expect(createLayer).toThrow();
+
+        });
 
     });
-
 
 });
 
