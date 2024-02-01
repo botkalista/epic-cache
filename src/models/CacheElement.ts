@@ -38,22 +38,22 @@ export class CacheElement<DataType> {
 
 
 
-//TODO: REMOVE
-export function createCacheElement<T>(value: T, expireIn?: Expiration, metadata?: any): CacheElement<T> {
-    if (!expireIn) return { value, expireTimestamp: DEFAULT_EXPIRE };
-    if (expireIn instanceof Time) {
-        return { value, expireTimestamp: Date.now() + expireIn.value };
-    } else {
-        const time = Time.from(expireIn);
-        return { value, expireTimestamp: Date.now() + time.value };
-    }
-}
+// //TODO: REMOVE
+// export function createCacheElement<T>(value: T, expireIn?: Expiration, metadata?: any): CacheElement<T> {
+//     if (!expireIn) return { value, expireTimestamp: DEFAULT_EXPIRE };
+//     if (expireIn instanceof Time) {
+//         return { value, expireTimestamp: Date.now() + expireIn.value };
+//     } else {
+//         const time = Time.from(expireIn);
+//         return { value, expireTimestamp: Date.now() + time.value };
+//     }
+// }
 
-//TODO: REMOVE
-export function copyCacheElementWithValue<OldValue, Metadata, NewValue>(baseElement: CacheElement<OldValue>, newValue: NewValue): CacheElement<NewValue> {
-    const newElement: CacheElement<NewValue> = {
-        expireTimestamp: baseElement.expireTimestamp,
-        value: newValue
-    }
-    return newElement;
-}
+// //TODO: REMOVE
+// export function copyCacheElementWithValue<OldValue, Metadata, NewValue>(baseElement: CacheElement<OldValue>, newValue: NewValue): CacheElement<NewValue> {
+//     const newElement: CacheElement<NewValue> = {
+//         expireTimestamp: baseElement.expireTimestamp,
+//         value: newValue
+//     }
+//     return newElement;
+// }

@@ -1,9 +1,8 @@
 import { Time } from "../models/Time";
 import { BetterEmitter } from "./BetterEmitter";
-import { CacheElement, DEFAULT_EXPIRE } from "../models/CacheElement";
+import { CacheElement, Expiration } from "../models/CacheElement";
 import { Store } from "../interfaces/Store";
-
-type Nullable<T> = T | undefined;
+import { SizeExceededStrategy } from "../strategies/SizeExceededStrategies";
 
 type BaseEventsMap<DataType> = {
     get: (key: string) => any;
@@ -17,16 +16,16 @@ export type LayerOptions<DataType> = {
     expireTime: Time,
     maxSize: number,
     clearExpiredOnSizeExceeded: boolean,
-    sizeExceededStrategy: (layer: Layer<DataType>) => any,
+    sizeExceededStrategy: SizeExceededStrategy<DataType>,
     expireOnInterval: boolean,
     expireCheckInterval?: Time
 }
 
-export abstract class Layer<DataType> extends BetterEmitter<BaseEventsMap<DataType>> {
+export class Layer<DataType> extends BetterEmitter<BaseEventsMap<DataType>> {
 
     private expireInterval: NodeJS.Timeout;
 
-    constructor(protected store: Store<CacheElement<DataType>>, protected options: LayerOptions<DataType>) {
+    constructor(protected store: Store<DataType>, protected options: LayerOptions<DataType>) {
         super();
         Object.seal(this.options);
         if (options.expireOnInterval) {
@@ -54,15 +53,15 @@ export abstract class Layer<DataType> extends BetterEmitter<BaseEventsMap<DataTy
             return;
         }
 
-        const element = this.store.get('key');
+        const element = this.store.get(key);
         this.emit('get', key);
         return element;
 
     }
 
-    public set(key: string, data: DataType) {
+    public set(key: string, data: DataType, expireIn?: Expiration) {
 
-        const cacheElement = CacheElement.from(data, this.options.expireTime);
+        const cacheElement = CacheElement.from(data, expireIn || this.options.expireTime);
 
         if (this.store.size() < this.options.maxSize) {
             this.emit('set', key, data);
@@ -91,45 +90,18 @@ export abstract class Layer<DataType> extends BetterEmitter<BaseEventsMap<DataTy
 
     }
 
-    public removeData(key: string) {
-        const element = this.onRemove(key);
-        if (element) this.emit('remove', key, element.value, element);
-        return this;
+    public del(key: string) {
+        if (!this.store.has(key)) return;
+        this.emit('remove', key);
+        this.store.del(key);
     }
 
-    public setData(key: string, element: CacheElement<SetType>) {
+    public size() {
+        return this.store.size();
+    }
 
-        if (element.expireTimestamp == DEFAULT_EXPIRE)
-            element.expireTimestamp = Date.now() + this.option('expireTime').value;
-
-        if (this.size() < this.option('maxSize')) {
-            this.onSet(key, element);
-            this.emit('set', key, element.value, element);
-            return this;
-        }
-
-        // maxSize reached
-
-        const hasElement = this.onGet(key);
-        if (hasElement) {
-            this.onSet(key, element);
-            this.emit('set', key, element.value, element);
-            return this;
-        }
-
-        if (this.option('clearExpiredOnSizeExceeded')) this.clearExpired();
-
-        if (this.size() < this.option('maxSize')) {
-            this.onSet(key, element);
-            this.emit('set', key, element.value, element);
-            return this;
-        }
-
-        if (this.option('sizeExceededStrategy') === 'no-cache') return this;
-        if (this.option('sizeExceededStrategy') === 'throw-error') throw Error('Cache size exceeded');
-
-        this.emit('set', key, element.value, element);
-        return this;
+    public has(key: string) {
+        return this.store.has(key);
     }
 
     public dispose() {
@@ -138,14 +110,11 @@ export abstract class Layer<DataType> extends BetterEmitter<BaseEventsMap<DataTy
     }
 
     private clearExpired() {
-        const expiredList = this.getExpired();
+        const expiredList = this.store.listExpired();
         expiredList.forEach(expired => {
-            this.emit('expire', expired[0], expired[1].value, expired[1]);
-            this.onExpired(expired[0], expired[1])
+            this.emit('expire', expired);
+            this.del(expired);
         });
     }
 
-    protected option<Key extends keyof LayerOptions>(optionName: Key): LayerOptions[Key] {
-        return this.options[optionName];
-    }
 }
