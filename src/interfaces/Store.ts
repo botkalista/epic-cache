@@ -5,5 +5,6 @@ export interface Store<DataType> {
     get(key: string): DataType;
     set(key: string, value: DataType): void;
     del(key: string): void;
+    size(): number;
     isExpired(key: string): boolean;
 }

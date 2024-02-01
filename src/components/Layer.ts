@@ -13,20 +13,20 @@ type BaseEventsMap<DataType> = {
     expire: (key: string) => any;
 }
 
-export type LayerOptions = {
+export type LayerOptions<DataType> = {
     expireTime: Time,
     maxSize: number,
     clearExpiredOnSizeExceeded: boolean,
-    sizeExceededStrategy: 'no-cache' | 'throw-error',
+    sizeExceededStrategy: (layer: Layer<DataType>) => any,
     expireOnInterval: boolean,
     expireCheckInterval?: Time
 }
 
-export abstract class Layer<DataType> extends BetterEmitter<BaseEventsMap<SetType, GetType>> {
+export abstract class Layer<DataType> extends BetterEmitter<BaseEventsMap<DataType>> {
 
     private expireInterval: NodeJS.Timeout;
 
-    constructor(protected store: Store<DataType>, protected options: LayerOptions) {
+    constructor(protected store: Store<CacheElement<DataType>>, protected options: LayerOptions<DataType>) {
         super();
         Object.seal(this.options);
         if (options.expireOnInterval) {
@@ -61,10 +61,35 @@ export abstract class Layer<DataType> extends BetterEmitter<BaseEventsMap<SetTyp
     }
 
     public set(key: string, data: DataType) {
-        const cacheElement = CacheElement.from(data, this.options.expireTime);
-    }
 
-    protected isElementExpired(element: CacheElement<any>): boolean { return element.expireTimestamp < Date.now() }
+        const cacheElement = CacheElement.from(data, this.options.expireTime);
+
+        if (this.store.size() < this.options.maxSize) {
+            this.emit('set', key, data);
+            this.store.set(key, cacheElement);
+            return;
+        }
+
+        // maxSize reached
+
+        const hasElement = this.store.has(key);
+        if (hasElement) {
+            this.emit('set', key, data);
+            this.store.set(key, cacheElement);
+            return;
+        }
+
+        if (this.options.clearExpiredOnSizeExceeded) this.clearExpired();
+
+        if (this.store.size() < this.options.maxSize) {
+            this.emit('set', key, data);
+            this.store.set(key, cacheElement);
+            return;
+        }
+
+        this.options.sizeExceededStrategy(this);
+
+    }
 
     public removeData(key: string) {
         const element = this.onRemove(key);
@@ -123,16 +148,4 @@ export abstract class Layer<DataType> extends BetterEmitter<BaseEventsMap<SetTyp
     protected option<Key extends keyof LayerOptions>(optionName: Key): LayerOptions[Key] {
         return this.options[optionName];
     }
-
-
-    public abstract size(): number;
-
-    protected abstract getExpired(): [string, CacheElement<GetType>][];
-    protected abstract onExpired(key: string, element: CacheElement<GetType>): this;
-
-    protected abstract onGet(key: string): Nullable<CacheElement<GetType>>;
-    protected abstract onHas(key: string): boolean;
-    protected abstract onSet(key: string, element: CacheElement<SetType>): this;
-    protected abstract onRemove(key: string): Nullable<CacheElement<GetType>>;
-
 }
