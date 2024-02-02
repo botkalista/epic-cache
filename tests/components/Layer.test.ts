@@ -19,7 +19,7 @@ describe('Layer', () => {
                 expireTime: Time.from('1m'),
                 expireOnInterval: false,
                 clearExpiredOnSizeExceeded: false,
-                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY["no-cache"](),
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
             });
 
             layer.set('a', 123);
@@ -37,7 +37,7 @@ describe('Layer', () => {
                 expireTime: Time.from('1m'),
                 expireOnInterval: false,
                 clearExpiredOnSizeExceeded: false,
-                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY["no-cache"](),
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
             });
 
             layer.set('a', 123);
@@ -57,7 +57,7 @@ describe('Layer', () => {
                 expireTime: Time.from('1s'),
                 expireOnInterval: false,
                 clearExpiredOnSizeExceeded: false,
-                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY["no-cache"](),
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
             });
 
             layer.set('a', 123, '4s');
@@ -92,7 +92,7 @@ describe('Layer', () => {
                 expireTime: Time.from('1s'),
                 expireOnInterval: false,
                 clearExpiredOnSizeExceeded: false,
-                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY["no-cache"](),
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
             });
 
             layer.set('a', 123);
@@ -104,7 +104,7 @@ describe('Layer', () => {
 
     });
 
-    describe.only('Events', () => {
+    describe('Events', () => {
 
         it('should fire onGet', () => {
 
@@ -115,7 +115,7 @@ describe('Layer', () => {
                 expireTime: Time.from('1m'),
                 expireOnInterval: false,
                 clearExpiredOnSizeExceeded: false,
-                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY["no-cache"](),
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
             });
 
             layer.set('test', 123);
@@ -143,7 +143,7 @@ describe('Layer', () => {
                 expireTime: Time.from('1m'),
                 expireOnInterval: false,
                 clearExpiredOnSizeExceeded: false,
-                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY["no-cache"](),
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
             });
 
             const getCallback = jest.fn();
@@ -169,7 +169,7 @@ describe('Layer', () => {
                 expireTime: Time.from('1m'),
                 expireOnInterval: false,
                 clearExpiredOnSizeExceeded: false,
-                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY["no-cache"](),
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
             });
 
             const expireCallback = jest.fn();
@@ -198,7 +198,7 @@ describe('Layer', () => {
                 expireTime: Time.from('1m'),
                 expireOnInterval: false,
                 clearExpiredOnSizeExceeded: false,
-                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY["no-cache"](),
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
             });
 
             const expireCallback = jest.fn();
@@ -219,131 +219,191 @@ describe('Layer', () => {
 
         });
 
-        //     it('should fire onSet', async () => {
-        //         const layer = new MemoryLayer<number>();
+        it('should fire onSet', async () => {
 
-        //         const cacheElement = createCacheElement(123);
+            const store = new MemoryStore<number>();
 
-        //         const setCallback = jest.fn((key, value, element) => {
-        //             expect(key).toBe('test');
-        //             expect(value).toBe(123);
-        //             expect(element).toBe(cacheElement);
-        //         });
+            const layer = new Layer(store, {
+                maxSize: 100,
+                expireTime: Time.from('1m'),
+                expireOnInterval: false,
+                clearExpiredOnSizeExceeded: false,
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
+            });
+            const setCallback = jest.fn();
 
-        //         layer.on('set', setCallback);
+            layer.on('set', setCallback);
+            layer.set('test', 123);
 
-        //         layer.setData('test', cacheElement);
-
-
-        //         expect(setCallback).toHaveBeenCalledTimes(1);
-        //         expect(setCallback).toHaveBeenCalledWith('test', 123, cacheElement);
-        //     });
+            expect(setCallback).toHaveBeenCalledTimes(1);
+            expect(setCallback).toHaveBeenCalledWith('test', 123);
+        });
 
     });
 
-    // describe('Options', () => {
+    describe('Options', () => {
 
-    //     it('should expire on expireTime', async () => {
-    //         const layer = new MemoryLayer<number>({ expireTime: Time.from('1s') });
-    //         const cacheElement = createCacheElement(123);
-    //         layer.setData('test', cacheElement);
-    //         expect(layer.getData('test')).toBe(cacheElement);
-    //         expect(layer.size()).toBe(1);
-    //         await sleep(2000);
-    //         expect(layer.getData('test')).toBeUndefined();
-    //         expect(layer.size()).toBe(0);
-    //     }, 5000);
+        it('should expire on expireTime', async () => {
 
-    //     it('should clearExpiredOnSizeExceeded', async () => {
+            const store = new MemoryStore<number>();
 
-    //         const layer = new MemoryLayer<number>({
-    //             clearExpiredOnSizeExceeded: true,
-    //             sizeExceededStrategy: 'no-cache',
-    //             maxSize: 2
-    //         });
+            const layer = new Layer(store, {
+                maxSize: 100,
+                expireTime: Time.from('1s'),
+                expireOnInterval: false,
+                clearExpiredOnSizeExceeded: false,
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
+            });
 
-    //         layer.setData('test1', createCacheElement(99, '1s'));
-    //         expect(layer.size()).toBe(1);
+            layer.set('test', 123);
+            expect(layer.get('test')).toBe(123);
+            expect(layer.size()).toBe(1);
+            await sleep(2000);
+            expect(layer.get('test')).toBeUndefined();
+            expect(layer.size()).toBe(0);
+        }, 5000);
 
-    //         await sleep(2000);
+        it('should clearExpiredOnSizeExceeded', async () => {
 
-    //         layer.setData('test2', createCacheElement(99));
-    //         expect(layer.size()).toBe(2);
+            const store = new MemoryStore<number>();
 
-    //         layer.setData('test3', createCacheElement(99));
-    //         expect(layer.size()).toBe(2);
+            const layer = new Layer(store, {
+                maxSize: 2,
+                expireTime: Time.from('1m'),
+                expireOnInterval: false,
+                clearExpiredOnSizeExceeded: true,
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
+            });
 
-    //         expect(layer.getData('test3')?.value).toBe(99);
-    //         expect(layer.getData('test1')).toBeUndefined();
-    //         expect(layer.size()).toBe(2);
+            layer.set('test1', 99, '1s');
+            expect(layer.size()).toBe(1);
 
-    //     }, 4000);
+            await sleep(2000);
 
-    //     it('should sizeExceededStrategy no-cache', async () => {
-    //         const layer = new MemoryLayer<number>({
-    //             clearExpiredOnSizeExceeded: false,
-    //             sizeExceededStrategy: 'no-cache',
-    //             maxSize: 2
-    //         });
-    //         layer.setData('test1', createCacheElement(99));
-    //         layer.setData('test2', createCacheElement(99));
-    //         layer.setData('test3', createCacheElement(99));
-    //         expect(layer.getData('test3')).toBeUndefined();
-    //     });
+            layer.set('test2', 99);
+            expect(layer.size()).toBe(2);
 
-    //     it('should sizeExceededStrategy throw-error', async () => {
-    //         const layer = new MemoryLayer<number>({
-    //             clearExpiredOnSizeExceeded: false,
-    //             sizeExceededStrategy: 'throw-error',
-    //             maxSize: 2
-    //         });
-    //         layer.setData('test1', createCacheElement(99));
-    //         layer.setData('test2', createCacheElement(99));
+            layer.set('test3', 99);
+            expect(layer.size()).toBe(2);
 
-    //         expect(() => {
-    //             layer.setData('test3', createCacheElement(99));
-    //         }).toThrow();
+            expect(layer.get('test3')).toBe(99);
+            expect(layer.get('test1')).toBeUndefined();
+            expect(layer.size()).toBe(2);
 
-    //     });
+        }, 4000);
 
-    //     it('should expire on interval', async () => {
+        it('should sizeExceededStrategy no-cache', async () => {
 
-    //         const layer = new MemoryLayer<number>({
-    //             expireTime: Time.from('1s'),
-    //             expireOnInterval: true,
-    //             expireCheckInterval: Time.from('2s')
-    //         });
+            const store = new MemoryStore<number>();
 
-    //         const onExpire = jest.fn(() => { });
-    //         layer.on('expire', onExpire);
+            const layer = new Layer(store, {
+                maxSize: 2,
+                expireTime: Time.from('1m'),
+                expireOnInterval: false,
+                clearExpiredOnSizeExceeded: false,
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
+            });
 
-    //         const cacheElement = createCacheElement(123);
-    //         layer.setData('test', cacheElement);
-    //         expect(layer.getData('test')).toBe(cacheElement);
-    //         expect(layer.size()).toBe(1);
+            layer.set('test1', 99);
+            layer.set('test2', 99);
+            layer.set('test3', 99);
+            expect(layer.get('test3')).toBeUndefined();
+        });
 
-    //         await sleep(3000);
+        it('should sizeExceededStrategy throw-error', async () => {
 
-    //         expect(layer.getData('test')).toBeUndefined();
-    //         expect(layer.size()).toBe(0);
-    //         expect(onExpire).toHaveBeenCalledTimes(1);
-    //         expect(onExpire).toHaveBeenCalledWith('test', cacheElement.value, cacheElement);
+            const store = new MemoryStore<number>();
 
-    //         layer.dispose();
+            const layer = new Layer(store, {
+                maxSize: 2,
+                expireTime: Time.from('1m'),
+                expireOnInterval: false,
+                clearExpiredOnSizeExceeded: false,
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.THROW_ERROR('Custom error message'),
+            });
 
-    //     }, 5000);
+            layer.set('test1', 99);
+            layer.set('test2', 99);
 
-    //     it('should error expireOnInterval without expireCheckInterval', async () => {
+            expect(() => {
+                layer.set('test3', 99);
+            }).toThrow('Custom error message');
 
-    //         function createLayer() {
-    //             new MemoryLayer<number>({ expireOnInterval: true, });
-    //         }
+        });
 
-    //         expect(createLayer).toThrow();
+        it('should sizeExceededStrategy custom', async () => {
 
-    //     });
+            const store = new MemoryStore<number>();
 
-    // });
+            const sizeExceededFunction = jest.fn();
+
+            const layer = new Layer(store, {
+                maxSize: 2,
+                expireTime: Time.from('1m'),
+                expireOnInterval: false,
+                clearExpiredOnSizeExceeded: false,
+                sizeExceededStrategy: sizeExceededFunction
+            });
+
+            layer.set('a', 123);
+            layer.set('b', 321);
+            layer.set('c', 999);
+
+            expect(sizeExceededFunction).toHaveBeenCalledTimes(1);
+            expect(sizeExceededFunction).toHaveBeenCalledWith(layer);
+
+        });
+
+        it('should expire on interval', async () => {
+
+            const store = new MemoryStore<number>();
+
+            const layer = new Layer(store, {
+                maxSize: 2,
+                expireTime: Time.from('1s'),
+                expireOnInterval: true,
+                expireCheckInterval: Time.from('2s'),
+                clearExpiredOnSizeExceeded: false,
+                sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
+            });
+
+            const onExpire = jest.fn(() => { });
+            layer.on('expire', onExpire);
+
+            layer.set('test', 123);
+            expect(layer.get('test')).toBe(123);
+            expect(layer.size()).toBe(1);
+
+            await sleep(3000);
+
+            expect(layer.get('test')).toBeUndefined();
+            expect(layer.size()).toBe(0);
+            expect(onExpire).toHaveBeenCalledTimes(1);
+            expect(onExpire).toHaveBeenCalledWith('test');
+
+            layer.dispose();
+
+        }, 5000);
+
+        it('should error expireOnInterval without expireCheckInterval', async () => {
+
+            function createLayer() {
+                const store = new MemoryStore();
+                const layer = new Layer(store, {
+                    maxSize: 2,
+                    expireTime: Time.from('1m'),
+                    expireOnInterval: true,
+                    clearExpiredOnSizeExceeded: false,
+                    sizeExceededStrategy: SIZE_EXCEEDED_STRATEGY.NO_CACHE(),
+                });
+            }
+
+            expect(createLayer).toThrow();
+
+
+        });
+
+    });
 
 });
 

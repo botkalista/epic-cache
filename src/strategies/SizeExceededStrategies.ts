@@ -4,12 +4,12 @@ import { Layer } from "../components/Layer";
 
 export type SizeExceededStrategy<DataType> = (layer: Layer<DataType>) => any;
 type SizeExceededStrategyFunction<DataType> = (...args: any) => SizeExceededStrategy<DataType>;
-type SizeExceededStrategyName = 'no-cache' | 'throw-error';
+type SizeExceededStrategyName = 'NO_CACHE' | 'THROW_ERROR';
 
 
 export const SIZE_EXCEEDED_STRATEGY = {
-    'no-cache': noCacheStrategy,
-    'throw-error': throwErrorStrategy
+    'NO_CACHE': noCacheStrategy,
+    'THROW_ERROR': throwErrorStrategy
 } satisfies Record<SizeExceededStrategyName, SizeExceededStrategyFunction<any>>
 
 function noCacheStrategy<DataType>() {

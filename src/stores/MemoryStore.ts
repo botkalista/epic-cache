@@ -1,4 +1,4 @@
-import { CacheElement } from "..";
+import { CacheElement } from "../models/CacheElement";
 import { Store } from "../interfaces/Store";
 
 export class MemoryStore<DataType = any> implements Store<DataType> {

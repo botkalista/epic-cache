@@ -28,6 +28,11 @@ export class CacheElement<DataType> {
         return instance;
     }
 
+    copyWithValue<K>(newValue: K): CacheElement<K> {
+        const instance = new CacheElement(newValue, this.expireTimestamp);
+        return instance;
+    }
+
     isExpired() {
         if (this.expireTimestamp == 0) return false;
         return this.expireTimestamp < Date.now();

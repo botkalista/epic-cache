@@ -1,4 +1,4 @@
-import { Time } from "../src/models/Time";
+import { Time } from "../../src/models/Time";
 
 
 describe('Expiration time', () => {
