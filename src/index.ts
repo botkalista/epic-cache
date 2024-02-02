@@ -1,3 +1,5 @@
-export { CacheElement, Expiration } from "./models/CacheElement";
-export { Time, TimeConstructor, TimeString } from "./models/Time";
-export { GenericCache, GenericCacheOptions, SizeExceededStrategy, defaultGenericCacheOptions } from "./caches/GenericCache";
+
+
+export { EpicCache, LayerBehavior } from './components/Cache';
+export { Layer, LayerOptions } from './components/Layer';
+export { BetterEmitter, EventHandler } from './components/BetterEmitter';
