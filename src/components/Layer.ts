@@ -66,7 +66,7 @@ export class Layer<DataType> extends BetterEmitter<BaseEventsMap<DataType>> {
         if (this.store.size() < this.options.maxSize) {
             this.emit('set', key, data);
             this.store.set(key, cacheElement);
-            return;
+            return true;
         }
 
         // maxSize reached
@@ -75,7 +75,7 @@ export class Layer<DataType> extends BetterEmitter<BaseEventsMap<DataType>> {
         if (hasElement) {
             this.emit('set', key, data);
             this.store.set(key, cacheElement);
-            return;
+            return true;
         }
 
         if (this.options.clearExpiredOnSizeExceeded) this.clearExpired();
@@ -83,10 +83,12 @@ export class Layer<DataType> extends BetterEmitter<BaseEventsMap<DataType>> {
         if (this.store.size() < this.options.maxSize) {
             this.emit('set', key, data);
             this.store.set(key, cacheElement);
-            return;
+            return true;
         }
 
         this.options.sizeExceededStrategy(this);
+        
+        return false;
 
     }
 
